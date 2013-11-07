@@ -8,6 +8,7 @@ describe ITunes::Commands do
 
   describe "osa scripting and callbacks" do
     it "runs commands" do
+      skip unless $osascript
       results = []
       @callback = lambda do |script, result, retval, t|
         results << [script, result]
@@ -17,7 +18,7 @@ describe ITunes::Commands do
     end
 
     it "complains if the script didn't work" do
-      skip
+      skip unless $osascript
       out, err = capture_subprocess_io do
         lambda { osascript("junk") }.must_raise RuntimeError
       end

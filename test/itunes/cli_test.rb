@@ -20,6 +20,7 @@ describe ITunes::CLI do
 
   describe "common usage" do
     it "adds a file to iTunes with metadata set" do
+      skip unless $osascript
       out, err = execute("add #{sample} --debug --name=\"Ace\" --description=\"Nice\"")
       err.must_be_empty
     end

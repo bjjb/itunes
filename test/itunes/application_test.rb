@@ -14,14 +14,17 @@ describe ITunes::Application do
   end
 
   it "automatically parses things" do
+    skip unless $osascript
     app.osascript("2 + 4").must_equal 6
   end
 
   it "can talk to iTunes" do
+    skip unless $osascript
     app.version.must_match /\d+\.\d+\.\d+/
   end
 
   it "can add a track to iTunes" do
+    skip unless $osascript
     track = app.add_track(sample, { name: "The Box" })
     track.artist.must_equal "___sample_artist___"
     track.name.must_equal "The Box"

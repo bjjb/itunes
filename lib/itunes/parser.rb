@@ -49,7 +49,7 @@ module ITunes
     end
     
     def missing_value!
-      skip(@@missing_value)
+      scan(@@missing_value)
       nil
     end
 
