@@ -39,9 +39,8 @@ For `ITunes` library docs, read the [source][] (or the [RDocs][]).
 
 ## Testing
 
-There's a Rakefile which runs tests. It _will_ pollute your iTunes while running
-`rake test:integration`, but it does try to clean itself up again - look at the
-tests to see what it might've created.
+There's a Rakefile which runs tests. It _will_ pollute your iTunes while
+running, as it adds a sample file to the library, and mucks around with it.
 
 ## Contributing
 
@@ -53,7 +52,7 @@ tests to see what it might've created.
 
 ## Thanks
 
-[TJ Holowaychuk](https://github.com/visionmedia) for [Commander][],
+[Yehuda Katz](http://yehudakatz.com/) for [Thor][],
 [Chris Wanstrath](https://github.com/defunkt) for [Mustache][],
 and everyone else involved in any of the super open-source software that makes
 building tools like this a breeze.
@@ -61,4 +60,4 @@ building tools like this a breeze.
 [source]: http://github.com/bjjb/itunes/
 [RDocs]: http://rdoc.info/github/bjjb/itunes/
 [Mustache]: http://mustache.github.io/
-[Commander]: http://visionmedia.github.io/commander/
+[Thor]: http://whatisthor.com

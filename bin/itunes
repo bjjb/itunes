@@ -1,2 +1,8 @@
 #!/usr/bin/env ruby
 require 'itunes/cli'
+
+$terminal.wrap_at = if $stdin.tty?
+  HighLine::SystemExtensions.terminal_size.first - 5
+end
+
+ITunes::CLI.run!

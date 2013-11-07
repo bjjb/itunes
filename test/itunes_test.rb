@@ -2,11 +2,11 @@ require 'test_helper'
 require 'itunes'
 
 describe ITunes do
-  def sample
-    File.expand_path("../tmp/sample.mp3", __FILE__)
+  it "has Commands" do
+    ITunes::Commands.wont_be_nil
   end
 
-  it "can add files to iTunes" do
-    ITunes.add([sample])
+  it "has a CLI" do
+    ITunes::CLI.wont_be_nil
   end
 end
