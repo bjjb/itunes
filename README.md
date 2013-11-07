@@ -37,10 +37,15 @@ The CLI is pretty thoroughly documented - run `itunes help` to get started.
 
 For `ITunes` library docs, read the [source][] (or the [RDocs][]).
 
-## Testing
+## Testing 
+
+[![Build Status](https://travis-ci.org/bjjb/itunes.png?branch=master)](https://travis-ci.org/bjjb/itunes)
 
 There's a Rakefile which runs tests. It _will_ pollute your iTunes while
 running, as it adds a sample file to the library, and mucks around with it.
+
+If you don't have osascript(1) available, then it will skip those tests that
+actually run scripts.
 
 ## Contributing
 
