@@ -6,38 +6,73 @@ describe ITunes::Commands do
 
   include ITunes::Commands
 
-  it "can add a file" do
-    ref = add(sample)
-    ref.must_match /^file track id \d+/
-    tell("delete #{ref}")
-    refs = add(sample, sample)
-    refs.must_match /^{([^,]+), \1}/
-    ref = refs.split(',').first[1..-1].strip
-    tell("delete #{ref}")
+  describe "osa scripting and callbacks" do
+    it "runs commands" do
+      results = []
+      @callback = lambda do |script, result, retval, t|
+        results << [script, result]
+      end
+      osascript("2 + 9").must_equal("11")
+      results.must_equal [["2 + 9", "11"]]
+    end
+
+    it "complains if the script didn't work" do
+      out, err = capture_subprocess_io do
+        lambda { osascript("junk") }.must_raise RuntimeError
+      end
+      err.must_match /execution error/
+    end
   end
 
-  it "can delete a file" do
-    ref = tell("add POSIX FILE \"#{sample}\"")
-    delete(ref)
-    tell(try("get #{ref}")).must_equal ""
-  end
+  describe "the interesting commands" do
+    def osascript(script)
+      script.squeeze("\n").split("\n").map(&:strip).join("\n")
+    end
 
-  it "can search the library" do
-    ref = tell("add POSIX FILE \"#{sample}\"")
-    search("sample").must_match /^{#{ref}}$/
-    search("sample", only: "artists").must_match /^{#{ref}}$/
-    search("sample_artist", only: "artists").must_match /^{#{ref}}$/
-    search("sample_artist", only: "songs").must_match /^{}$/
-    tell("delete #{ref}")
-  end
+    it "can add files" do
+      add('foo', 'bar').must_equal((<<-APPLESCRIPT).strip)
+tell application "iTunes"
+add {POSIX file "foo", POSIX file "bar"}
+end tell
+      APPLESCRIPT
+    end
 
-  it "can modify a track" do
-    ref = tell("add POSIX FILE \"#{sample}\"")
-    edit(ref, { "sort name" => "My Sample Track" })
-    tell("get sort name of #{ref}").must_equal "\"My Sample Track\""
-    edit(ref, { "bpm" => 1, :sort_album => "My Sample Album" })
-    tell("get bpm of #{ref}").must_equal "1"
-    tell("get sort album of #{ref}").must_equal "\"My Sample Album\""
-    tell("delete #{ref}")
+    it "can delete files" do
+      delete('foo', 'bar').must_equal((<<-APPLESCRIPT).strip)
+tell application "iTunes"
+delete foo
+delete bar
+end tell
+      APPLESCRIPT
+    end
+
+    it "can search the library" do
+      search("foo").must_equal((<<-APPLESCRIPT).strip)
+tell application "iTunes"
+search the first playlist for "foo"
+end tell
+      APPLESCRIPT
+      search("foo", only: "artists").must_equal((<<-APPLESCRIPT).strip)
+tell application "iTunes"
+search the first playlist for "foo" only artists
+end tell
+      APPLESCRIPT
+      search("foo", playlist: "bar", only: :songs).must_equal (<<-APPLESCRIPT).strip
+tell application "iTunes"
+search bar for "foo" only songs
+end tell
+      APPLESCRIPT
+    end
+
+    it "can modify a track" do
+      edit('foo', { "bar" => "BAR", "x y" => "BINGO" }).must_equal (<<-APPLESCRIPT).strip
+tell application "iTunes"
+tell foo
+set its bar to "BAR"
+set its x y to "BINGO"
+end tell
+end tell
+      APPLESCRIPT
+    end
   end
 end

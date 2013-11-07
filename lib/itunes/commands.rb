@@ -14,17 +14,17 @@ module ITunes
 
     # Add files to iTunes (the default playlist).
     def add(*files)
-      files = files.map do |file|
-        file = Pathname.new(file).expand_path
+      files = Array(files).flatten.uniq.map do |file|
         "POSIX file \"#{file}\""
       end
       files = "{#{files.join(', ')}}"
       tell("add #{files}")
     end
 
-    # Remove a track from iTunes - expects the persistent ID of the track
-    def delete(ref)
-      tell("delete #{ref}")
+    # Remove tracks from iTunes - it must be able to resolve the references
+    def delete(*refs)
+      instructions = refs.map { |ref| "delete #{ref}" }.join("\n")
+      tell(instructions)
     end
 
     # Modify track properties. Expects a ref to a track, and a hash of properties
@@ -43,6 +43,7 @@ module ITunes
     end
 
   private
+    # Convenience method to wrap a script in a "try" block.
     def try(command)
       <<-APPLESCRIPT
         try
@@ -51,6 +52,7 @@ module ITunes
       APPLESCRIPT
     end
 
+    # Convenience method to call `osascript` targeting the iTunes application
     def tell(command)
       osascript(<<-APPLESCRIPT)
         tell application "iTunes"
@@ -59,8 +61,22 @@ module ITunes
       APPLESCRIPT
     end
 
-    def osascript(command)
-      %x[osascript -ss -e '#{command}'].strip
+    # Executes the OSA script. Will call @callback if there's one specified,
+    # with the script, result, return value, and the time it started. This is
+    # handy for testing, and might also be useful for logging or whatever. If
+    # `osascript(1)` doesn't exit with 0, a RuntimeError will be raised (the
+    # callback is still called first). Otherwise, it returns the output from
+    # `osascript(1)`.
+    def osascript(script)
+      script = script.split("\n").map(&:strip).join("\n")
+      command = "osascript -ss -e '#{script}'"
+      puts("EXECUTUNG: ---\n#{command}\n---") if $debug
+      timestamp = Time.now
+      result = %x[#{command}].strip
+      @callback.call(script, result, $?, timestamp) if @callback
+      puts("[#$?] ===\n#{result}\n===") if $debug
+      raise("Error (#$?) running script") unless $? == 0
+      result
     end
   end
 end

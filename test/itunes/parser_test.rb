@@ -18,6 +18,7 @@ describe ITunes::Parser do
     ['missing value', :missing_value, nil],
     ['{1, "Hello", false}', :list, [1, "Hello", false]],
     ['{1}', :list, [1]],
+    ['{}', :list, []],
     ['{1, {"He}},"}}', :list, [1, ["He}},"]]],
     ['{foo: "Bar", x y: {"X", "Y"}}', :record, { "foo" => "Bar", "x y" => %w(X Y) }],
     ['{foo:{x y:{"X", "Y"}}}', :record, { "foo" => {"x y" => %w(X Y) }}],
@@ -39,6 +40,7 @@ describe ITunes::Parser do
   end
 
   it "can handle leftovers" do
-    ITunes::Parser.new("foo bar").parse!.must_equal "foo bar"
+    ITunes::Parser.new('foo bar').parse!.must_equal 'foo bar'
+    ITunes::Parser.new('foo "bar"').parse!.must_equal 'foo "bar"'
   end
 end

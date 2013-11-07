@@ -4,16 +4,31 @@ require 'itunes/track'
 describe ITunes::Track do
   include ITunes::Commands
 
-  let(:sample) { File.expand_path("../../tmp/sample.mp3", __FILE__) }
+  let(:track_class) do
+    Class.new(ITunes::Track) do
+      attr_reader :scripts
 
-  it "can get and set its properties" do
-    ref = tell("add POSIX file \"#{sample}\"")
-    track = ITunes::Track.new(ref)
-    track.album.must_equal "___sample_album___"
-    track.name = "My New Name"
-    track.name.must_equal 'My New Name'
-    track = ITunes::Track.new(tell("add POSIX file \"#{sample}\""))
-    track.name.must_equal 'My New Name'
-    tell("delete #{ref}")
+      def osascript(script)
+        @scripts ||= []
+        @scripts << script.split("\n").map(&:strip).join("\n").squeeze(' ').strip
+        '{name:"foo", artist:"Foo", album: "FOO"}'
+      end
+    end
+  end
+
+  it "is created using real data from iTunes" do
+    t = track_class.new("foo")
+    t.name.must_equal "foo"
+    t.artist.must_equal "Foo"
+  end
+
+  it "stores its changes in iTunes" do
+    t = track_class.new("x")
+    t.name = "BAR"
+    t.scripts.last.must_equal (<<-APPLESCRIPT).strip
+tell application "iTunes"
+set name of x to "BAR"
+end tell
+    APPLESCRIPT
   end
 end

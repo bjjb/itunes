@@ -13,11 +13,11 @@ module ITunes
     @@record = /{[\w ]+:/
     @@list = /{/
 
-    def parse!
+    def parse!(glob = /.+/)
       %w[string float integer date boolean missing_value record list].each do |t|
         return send(:"#{t}!") if send(:"#{t}?")
       end
-      scan(/[^,;:"]+/) # Everything else (types, etc)
+      scan(glob) # Everything else (types, etc)
     end
 
     def string?
@@ -78,12 +78,12 @@ module ITunes
       record = {}
       raise "Not a record!" unless scan(/{/)
       loop do
+        break if scan(/}/)
         k = scan(/[^:]+/)
-        skip(/:\s?/)
-        v = parse!
+        scan(/:\s*/)
+        v = parse!(/[^,}]+/)
         record[k] = v
-        break if scan(/\s*}/)
-        raise "Error parsing record: #{inspect}" unless scan(/,\s*/)
+        scan(/\s*,\s*/)
       end
       record
     end
@@ -94,11 +94,11 @@ module ITunes
 
     def list!
       list = []
-      raise "Not a list!" unless scan(/{/)
+      raise "Not a list! (#{inspect})" unless scan(/{/)
       loop do
-        list << parse!
-        break if scan(/\s*}/)
-        raise "Invalid list! (#{rest})" unless scan(/,\s*/)
+        break if scan(/}/)
+        list << parse!(/\s?[^,}]+/)
+        scan(/\s?,\s?/)
       end
       list
     end
